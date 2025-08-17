@@ -32,3 +32,16 @@ func (t Todo) String() string {
 	}
 	return fmt.Sprintf("%d. %s %s", t.ID, status, t.Title)
 }
+
+type TodoManager struct {
+	todos []Todo
+	nextID int
+}
+
+func NewTodoManager() *TodoManager {
+	return &TodoManager{
+		todos: make([]Todo, 0),
+		nextID: 1,
+	}
+}
+

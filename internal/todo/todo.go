@@ -34,33 +34,32 @@ func (t Todo) String() string {
 }
 
 type TodoManager struct {
-	todos  []Todo
+	todos  []*Todo
 	nextID int
 }
 
 func NewTodoManager() *TodoManager {
 	return &TodoManager{
-		todos:  make([]Todo, 0),
+		todos:  make([]*Todo, 0),
 		nextID: 1,
 	}
 }
 
 func (tm *TodoManager) AddTodo(title string) *Todo {
 	todo := NewTodo(tm.nextID, title)
-	tm.todos = append(tm.todos, *todo)
+	tm.todos = append(tm.todos, todo)
 	tm.nextID++
-	// Return pointer to the element in the slice, not the original
-	return &tm.todos[len(tm.todos)-1]
+	return todo
 }
 
-func (tm *TodoManager) ListTodos() []Todo {
+func (tm *TodoManager) ListTodos() []*Todo {
 	return tm.todos
 }
 
 func (tm *TodoManager) GetTodoByID(id int) (*Todo, error) {
 	for i := range tm.todos {
 		if tm.todos[i].ID == id {
-			return &tm.todos[i], nil
+			return tm.todos[i], nil
 		}
 	}
 	return nil, fmt.Errorf("todo with ID %d not found", id)
@@ -79,9 +78,8 @@ func (tm *TodoManager) CompleteTodo(id int) error {
 func (tm *TodoManager) RemoveTodo(id int) error {
 	for i := range tm.todos {
 		if tm.todos[i].ID == id {
-			// Safer slice removal
 			copy(tm.todos[i:], tm.todos[i+1:])
-			tm.todos[len(tm.todos)-1] = Todo{} // Clear the last element
+			tm.todos[len(tm.todos)-1] = nil
 			tm.todos = tm.todos[:len(tm.todos)-1]
 			return nil
 		}
@@ -99,8 +97,8 @@ func (tm *TodoManager) UpdateTodo(id int, newTitle string) error {
 	return fmt.Errorf("todo with ID %d not found", id)
 }
 
-func (tm *TodoManager) GetCompletedTodos() []Todo {
-	var completed []Todo
+func (tm *TodoManager) GetCompletedTodos() []*Todo {
+	var completed []*Todo
 	for _, todo := range tm.todos {
 		if todo.Completed {
 			completed = append(completed, todo)
@@ -109,8 +107,8 @@ func (tm *TodoManager) GetCompletedTodos() []Todo {
 	return completed
 }
 
-func (tm *TodoManager) GetPendingTodos() []Todo {
-	var pending []Todo
+func (tm *TodoManager) GetPendingTodos() []*Todo {
+	var pending []*Todo
 	for _, todo := range tm.todos {
 		if !todo.Completed {
 			pending = append(pending, todo)
@@ -120,7 +118,7 @@ func (tm *TodoManager) GetPendingTodos() []Todo {
 }
 
 func (tm *TodoManager) ClearCompleted() int {
-	var remaining []Todo
+	var remaining []*Todo
 	removedCount := 0
 
 	for _, todo := range tm.todos {

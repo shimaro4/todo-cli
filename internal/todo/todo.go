@@ -6,16 +6,16 @@ import (
 )
 
 type Todo struct {
-	ID int
-	Title string
+	ID        int
+	Title     string
 	Completed bool
 	CreatedAt time.Time
 }
 
 func NewTodo(id int, title string) *Todo {
 	return &Todo{
-		ID: id,
-		Title: title,
+		ID:        id,
+		Title:     title,
 		Completed: false,
 		CreatedAt: time.Now(),
 	}
@@ -34,13 +34,13 @@ func (t Todo) String() string {
 }
 
 type TodoManager struct {
-	todos []Todo
+	todos  []Todo
 	nextID int
 }
 
 func NewTodoManager() *TodoManager {
 	return &TodoManager{
-		todos: make([]Todo, 0),
+		todos:  make([]Todo, 0),
 		nextID: 1,
 	}
 }
@@ -49,14 +49,15 @@ func (tm *TodoManager) AddTodo(title string) *Todo {
 	todo := NewTodo(tm.nextID, title)
 	tm.todos = append(tm.todos, *todo)
 	tm.nextID++
-	return todo
+	// Return pointer to the element in the slice, not the original
+	return &tm.todos[len(tm.todos)-1]
 }
 
 func (tm *TodoManager) ListTodos() []Todo {
 	return tm.todos
 }
 
-func (tm *TodoManager) GetTodoByID(id int) (*Todo, error){
+func (tm *TodoManager) GetTodoByID(id int) (*Todo, error) {
 	for i := range tm.todos {
 		if tm.todos[i].ID == id {
 			return &tm.todos[i], nil
@@ -72,14 +73,16 @@ func (tm *TodoManager) CompleteTodo(id int) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo with ID %d not found", id)
+	return fmt.Errorf("todo with ID %d not found", id)
 }
 
 func (tm *TodoManager) RemoveTodo(id int) error {
 	for i := range tm.todos {
 		if tm.todos[i].ID == id {
-			// Remove element at index i
-			tm.todos = append(tm.todos[:i], tm.todos[i+1:]...)
+			// Safer slice removal
+			copy(tm.todos[i:], tm.todos[i+1:])
+			tm.todos[len(tm.todos)-1] = Todo{} // Clear the last element
+			tm.todos = tm.todos[:len(tm.todos)-1]
 			return nil
 		}
 	}
@@ -93,7 +96,7 @@ func (tm *TodoManager) UpdateTodo(id int, newTitle string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Todo with ID %d not found", id)
+	return fmt.Errorf("todo with ID %d not found", id)
 }
 
 func (tm *TodoManager) GetCompletedTodos() []Todo {
